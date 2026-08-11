@@ -27,6 +27,7 @@ const CATEGORIES = [
   { id: "personal", label: "Personal Care", emoji: "🧴" },
   { id: "household", label: "Household", emoji: "🧹" },
   { id: "baby", label: "Baby Care", emoji: "🍼" },
+  { id: "medicine", label: "Medicine", emoji: "💊" },
 ];
 
 // Used as instant first paint + offline fallback if Supabase isn't reachable.
