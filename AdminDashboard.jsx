@@ -117,8 +117,7 @@ export default function AdminDashboard() {
             className="w-full border border-[#ECE8DD] rounded-lg px-3 h-11 mb-3 text-sm outline-none focus:border-[#4C7A2A]"
           />
           {loginError && (
-            <p className="text-[#B23A2F] text-xs mb-3">{loginError}</p>
-          )}
+            <p className="text-[#B23A2F] text-xs mb-3">{loginError}</p>)}
           <button
             type="submit"
             className="w-full bg-[#4C7A2A] text-white font-bold rounded-lg py-2.5 text-sm"
@@ -141,4 +140,95 @@ export default function AdminDashboard() {
           <button onClick={fetchOrders} aria-label="Refresh">
             <RefreshCw size={18} className="text-[#4C7A2A]" />
           </button>
-          <button onClick={logout}
+          <button onClick={logout} aria-label="Logout">
+            <LogOut size={18} className="text-[#B23A2F]" />
+          </button>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {loading && (
+          <div className="flex items-center justify-center gap-2 text-[#8A8578] py-10">
+            <Loader2 size={18} className="animate-spin" /> Loading orders...
+          </div>
+        )}
+
+        {error && <p className="text-[#B23A2F] text-sm mb-3">{error}</p>}
+
+        {!loading && orders.length === 0 && !error && (
+          <p className="text-[#8A8578] text-sm text-center py-10">
+            Abhi tak koi order nahi aaya.
+          </p>
+        )}
+
+        <div className="space-y-3">
+          {orders.map((order) => {
+            const orderItems = items.filter((it) => it.order_id === order.id);
+            const status = order.order_status || "pending";
+            return (
+              <div
+                key={order.id}
+                className="bg-white border border-[#ECE8DD] rounded-xl p-4"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="font-bold text-[#1B1A17] text-sm">
+                      #{order.id} • {order.customer_name}
+                    </p>
+                    <p className="text-xs text-[#8A8578]">
+                      {new Date(order.created_at).toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                  <span
+                    className="text-[10px] font-bold px-2 py-1 rounded text-white shrink-0"
+                    style={{ background: STATUS_COLORS[status] }}
+                  >
+                    {STATUS_LABELS[status]}
+                  </span>
+                </div>
+
+                <p className="text-xs text-[#8A8578] mb-2">{order.address}</p>
+
+                <div className="border-t border-dashed border-[#ECE8DD] pt-2 mb-2">
+                  {orderItems.map((it) => (
+                    <div
+                      key={it.id}
+                      className="flex justify-between text-xs text-[#4A4A44] mb-1"
+                    >
+                      <span>
+                        {it.product_name} x{it.quantity}
+                      </span>
+                      <span>{currency(it.price * it.quantity)}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex items-center justify-between border-t border-dashed border-[#ECE8DD] pt-2 mb-3">
+                  <span className="text-xs text-[#8A8578]">
+                    {order.pay_method?.toUpperCase()} • {order.payment_status}
+                  </span>
+                  <span className="font-bold text-[#1B1A17] text-sm">
+                    {currency(order.grand_total)}
+                  </span>
+                </div>
+
+                <select
+                  value={status}
+                  disabled={updatingId === order.id}
+                  onChange={(e) => updateStatus(order.id, e.target.value)}
+                  className="w-full border border-[#ECE8DD] rounded-lg h-10 px-2 text-sm outline-none focus:border-[#4C7A2A] bg-[#FAFAF6]"
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {STATUS_LABELS[s]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
