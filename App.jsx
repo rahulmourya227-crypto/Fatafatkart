@@ -686,7 +686,7 @@ export default function FatafatKart() {
             </div>
             <div className="flex items-center gap-1 text-xs text-[#8A8578] mt-0.5">
               <MapPin size={12} />
-              <span className="truncate max-w-[220px]">Andheri West, Mumbai</span>
+              <span className="truncate max-w-[220px]">Naigaon, Vasai, Mumbai</span>
             </div>
           </div>
           <button
