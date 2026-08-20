@@ -277,8 +277,19 @@ export default function FatafatKart() {
 
     return order;
   };
-
-  // Cash on Delivery: just save the order, no payment gateway needed.
+// Sends a fire-and-forget email to the admin when a new order comes in.
+  const notifyAdminByEmail = async (order, status) => {
+    try {
+      await fetch("/api/send-order-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order, status }),
+      });
+    } catch (err) {
+      console.error("Email notify failed:", err);
+    }
+  };
+// Cash on Delivery: just save the order, no payment gateway needed.
   const placeOrderCOD = async () => {
     setPlacing(true);
     setOrderError("");
@@ -294,6 +305,9 @@ export default function FatafatKart() {
       setPlacing(false);
     }
   };
+
+  
+  
 
   // UPI / Card: create a Razorpay order via the serverless function, open
   // the checkout widget, verify the signature, then save the order.
