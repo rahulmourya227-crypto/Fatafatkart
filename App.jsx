@@ -283,7 +283,8 @@ export default function FatafatKart() {
     setPlacing(true);
     setOrderError("");
     try {
-      await saveOrderToDb("pending");
+      const order = await saveOrderToDb("pending");
+      notifyAdminByEmail(order, "pending");
       setView("success");
       setOrderEta(9);
     } catch (err) {
