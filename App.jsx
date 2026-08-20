@@ -343,10 +343,11 @@ export default function FatafatKart() {
               body: JSON.stringify(response),
             });
             const { verified } = await verifyRes.json();
-            await saveOrderToDb(verified ? "paid" : "failed", {
+            const order = await saveOrderToDb(verified ? "paid" : "failed", {
               orderId: response.razorpay_order_id,
               paymentId: response.razorpay_payment_id,
             });
+            notifyAdminByEmail(order, verified ? "paid" : "failed");
             if (verified) {
               setView("success");
               setOrderEta(9);
