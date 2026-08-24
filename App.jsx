@@ -274,7 +274,7 @@ export default function FatafatKart() {
     }));
     const { error: itemsErr } = await supabase.from("order_items").insert(rows);
     if (itemsErr) throw itemsErr;
-
+order.items = rows;
     return order;
   };
 // Sends a fire-and-forget email to the admin when a new order comes in.
@@ -283,7 +283,14 @@ export default function FatafatKart() {
       await fetch("/api/send-order-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order, status }),
+        body: JSON.stringify({
+          orderId: order.id,
+          customerName: order.customer_name,
+          address: order.address,
+          payMethod: order.pay_method,
+          total: order.grand_total,
+          items: order.items,
+        }),
       });
     } catch (err) {
       console.error("Email notify failed:", err);
