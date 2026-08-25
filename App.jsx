@@ -6,18 +6,6 @@ import {
 } from "lucide-react";
 import { supabase } from "./supabaseClient";
 
-// ---------------------------------------------------------------------------
-// Design tokens
-// bg canvas   : #FAFAF6 (soft rice-white)
-// ink         : #1B1A17
-// brand green : #4C7A2A (chutney)
-// brand green-dk: #35581C
-// accent      : #E8A93B (turmeric)
-// price/deal  : #B23A2F (beetroot red)
-// muted       : #8A8578
-// card border : #ECE8DD
-// ---------------------------------------------------------------------------
-
 const CATEGORIES = [
   { id: "fruitveg", label: "Fruits & Veg", emoji: "🥦" },
   { id: "dairy", label: "Dairy & Eggs", emoji: "🥛" },
@@ -30,8 +18,6 @@ const CATEGORIES = [
   { id: "medicine", label: "Medicine", emoji: "💊" },
 ];
 
-// Used as instant first paint + offline fallback if Supabase isn't reachable.
-// The live product list is fetched from the `products` table on mount.
 const SEED_PRODUCTS = [
   { id: 1, cat: "fruitveg", name: "Alphonso Mango", qty: "1 kg", price: 249, mrp: 320, emoji: "🥭", rating: 4.6 },
   { id: 2, cat: "fruitveg", name: "Banana Robusta", qty: "6 pcs", price: 42, mrp: 48, emoji: "🍌", rating: 4.4 },
@@ -63,7 +49,6 @@ function currency(n) {
   return `₹${n.toLocaleString("en-IN")}`;
 }
 
-// Loads the Razorpay checkout script once, on demand.
 function loadRazorpayScript() {
   return new Promise((resolve) => {
     if (window.Razorpay) return resolve(true);
@@ -75,7 +60,6 @@ function loadRazorpayScript() {
   });
 }
 
-// Little scooter that zips across the header when something is added — the signature moment.
 function ScooterBolt({ show }) {
   if (!show) return null;
   return (
@@ -96,38 +80,25 @@ function StepperButton({ qty, onAdd, onInc, onDec, compact }) {
   if (qty > 0) {
     return (
       <div className={`flex items-center justify-between rounded-lg bg-[#4C7A2A] text-white ${compact ? "h-8 px-1 text-xs w-20" : "h-9 px-1.5 text-sm w-24"} shrink-0`}>
-        <button
-          onClick={onDec}
-          aria-label="Decrease quantity"
-          className="grid place-items-center h-full w-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
-        >
+        <button onClick={onDec} aria-label="Decrease quantity" className="grid place-items-center h-full w-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
           <Minus size={14} />
         </button>
         <span className="font-semibold tabular-nums">{qty}</span>
-        <button
-          onClick={onInc}
-          aria-label="Increase quantity"
-          className="grid place-items-center h-full w-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded"
-        >
+        <button onClick={onInc} aria-label="Increase quantity" className="grid place-items-center h-full w-6 focus:outline-none focus-visible:ring-2 focus-visible:ring-white rounded">
           <Plus size={14} />
         </button>
       </div>
     );
   }
   return (
-    <button
-      onClick={onAdd}
-      className={`rounded-lg border border-[#4C7A2A] text-[#35581C] font-bold ${compact ? "h-8 text-xs w-20" : "h-9 text-sm w-24"} bg-white hover:bg-[#F1F7EA] active:scale-95 transition shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4C7A2A]`}
-    >
+    <button onClick={onAdd} className={`rounded-lg border border-[#4C7A2A] text-[#35581C] font-bold ${compact ? "h-8 text-xs w-20" : "h-9 text-sm w-24"} bg-white hover:bg-[#F1F7EA] active:scale-95 transition shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4C7A2A]`}>
       ADD
     </button>
   );
 }
 
 function ProductCard({ product, qty, onAdd, onInc, onDec }) {
-  const discount = product.mrp > product.price
-    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-    : 0;
+  const discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   return (
     <div className="flex flex-col bg-white border border-[#ECE8DD] rounded-xl p-2.5 w-[148px] shrink-0 snap-start">
       <div className="relative h-20 grid place-items-center bg-[#FAFAF6] rounded-lg mb-2 text-4xl">
@@ -149,9 +120,7 @@ function ProductCard({ product, qty, onAdd, onInc, onDec }) {
       <div className="flex items-end justify-between mt-auto gap-1">
         <div className="leading-tight">
           <div className="text-[13px] font-bold text-[#1B1A17]">{currency(product.price)}</div>
-          {discount > 0 && (
-            <div className="text-[10px] text-[#8A8578] line-through">{currency(product.mrp)}</div>
-          )}
+          {discount > 0 && <div className="text-[10px] text-[#8A8578] line-through">{currency(product.mrp)}</div>}
         </div>
         <StepperButton qty={qty} onAdd={onAdd} onInc={onInc} onDec={onDec} compact />
       </div>
@@ -161,8 +130,8 @@ function ProductCard({ product, qty, onAdd, onInc, onDec }) {
 
 export default function FatafatKart() {
   const [products, setProducts] = useState(SEED_PRODUCTS);
-  const [cart, setCart] = useState({}); // { productId: qty }
-  const [view, setView] = useState("home"); // home | cart | checkout | success
+  const [cart, setCart] = useState({});
+  const [view, setView] = useState("home");
   const [query, setQuery] = useState("");
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
   const [showScooter, setShowScooter] = useState(false);
@@ -170,13 +139,11 @@ export default function FatafatKart() {
   const [orderEta, setOrderEta] = useState(9);
   const [placing, setPlacing] = useState(false);
   const [orderError, setOrderError] = useState("");
-  const [customerName, setCustomerName] = useState("Rahul");
-  const [address, setAddress] = useState("302, Sunrise Apartments, Andheri West, Mumbai, Maharashtra 400058");
+  const [customerName, setCustomerName] = useState("");
+  const [address, setAddress] = useState("");
   const sectionRefs = useRef({});
   const scooterTimeout = useRef(null);
 
-  // Pull live products from Supabase on load. Falls back to the seed list
-  // above if the table is empty or Supabase env vars aren't set yet.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -185,9 +152,7 @@ export default function FatafatKart() {
         setProducts(data);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const cartCount = useMemo(() => Object.values(cart).reduce((a, b) => a + b, 0), [cart]);
@@ -240,7 +205,6 @@ export default function FatafatKart() {
     sectionRefs.current[id]?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  // Saves the order (and its line items) to Supabase.
   const saveOrderToDb = async (paymentStatus, razorpayIds = {}) => {
     const cartItems = Object.entries(cart)
       .map(([id, qty]) => ({ product: products.find((p) => p.id === Number(id)), qty }))
@@ -274,10 +238,10 @@ export default function FatafatKart() {
     }));
     const { error: itemsErr } = await supabase.from("order_items").insert(rows);
     if (itemsErr) throw itemsErr;
-order.items = rows;
+    order.items = rows;
     return order;
   };
-// Sends a fire-and-forget email to the admin when a new order comes in.
+
   const notifyAdminByEmail = async (order, status) => {
     try {
       await fetch("/api/send-order-email", {
@@ -296,7 +260,7 @@ order.items = rows;
       console.error("Email notify failed:", err);
     }
   };
-// Cash on Delivery: just save the order, no payment gateway needed.
+
   const placeOrderCOD = async () => {
     setPlacing(true);
     setOrderError("");
@@ -313,11 +277,6 @@ order.items = rows;
     }
   };
 
-  
-  
-
-  // UPI / Card: create a Razorpay order via the serverless function, open
-  // the checkout widget, verify the signature, then save the order.
   const placeOrderRazorpay = async () => {
     setPlacing(true);
     setOrderError("");
@@ -368,9 +327,7 @@ order.items = rows;
             setPlacing(false);
           }
         },
-        modal: {
-          ondismiss: () => setPlacing(false),
-        },
+        modal: { ondismiss: () => setPlacing(false) },
       };
 
       const rzp = new window.Razorpay(options);
@@ -383,6 +340,10 @@ order.items = rows;
   };
 
   const placeOrder = () => {
+    if (!customerName.trim() || !address.trim()) {
+      setOrderError("Please enter your name and delivery address.");
+      return;
+    }
     if (payMethod === "cod") {
       placeOrderCOD();
     } else {
@@ -404,9 +365,6 @@ order.items = rows;
     setQuery("");
   };
 
-  // ---------------------------------------------------------------------
-  // SUCCESS VIEW
-  // ---------------------------------------------------------------------
   if (view === "success") {
     return (
       <div className="min-h-[640px] bg-[#FAFAF6] flex flex-col items-center justify-center p-6 text-center font-[Manrope,sans-serif]">
@@ -428,10 +386,7 @@ order.items = rows;
           </div>
           <p className="text-xs text-[#8A8578]">estimated delivery time</p>
           <div className="h-1.5 rounded-full bg-[#ECE8DD] mt-3 overflow-hidden">
-            <div
-              className="h-full bg-[#E8A93B] transition-all duration-1000"
-              style={{ width: `${((9 - orderEta) / 9) * 100}%` }}
-            />
+            <div className="h-full bg-[#E8A93B] transition-all duration-1000" style={{ width: `${((9 - orderEta) / 9) * 100}%` }} />
           </div>
         </div>
 
@@ -455,19 +410,13 @@ order.items = rows;
           </div>
         </div>
 
-        <button
-          onClick={resetToHome}
-          className="bg-[#4C7A2A] text-white font-bold rounded-xl px-6 py-3 w-full max-w-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]"
-        >
+        <button onClick={resetToHome} className="bg-[#4C7A2A] text-white font-bold rounded-xl px-6 py-3 w-full max-w-xs focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]">
           Order more
         </button>
       </div>
     );
   }
 
-  // ---------------------------------------------------------------------
-  // CHECKOUT VIEW
-  // ---------------------------------------------------------------------
   if (view === "checkout") {
     return (
       <div className="min-h-[640px] bg-[#FAFAF6] font-[Manrope,sans-serif] pb-28">
@@ -479,13 +428,24 @@ order.items = rows;
         </div>
 
         <div className="p-4 space-y-4">
-          <div className="bg-white border border-[#ECE8DD] rounded-xl p-4">
-            <div className="flex items-center gap-2 mb-2 text-[#4C7A2A]">
+          <div className="bg-white border border-[#ECE8DD] rounded-xl p-4 space-y-4">
+            <div className="flex items-center gap-2 text-[#4C7A2A]">
               <HomeIcon size={16} />
-              <span className="text-sm font-bold">Delivering to Home</span>
+              <span className="text-sm font-bold">Delivering to</span>
             </div>
-            <p className="text-sm text-[#1B1A17] font-medium">Rahul • 302, Sunrise Apartments</p>
-            <p className="text-xs text-[#8A8578]">Andheri West, Mumbai, Maharashtra 400058</p>
+            <input
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              placeholder="Your name"
+              className="w-full text-sm text-[#1B1A17] font-medium bg-[#FAFAF6] border border-[#ECE8DD] rounded-lg px-3 py-2 outline-none focus:border-[#4C7A2A]"
+            />
+            <textarea
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Full delivery address"
+              rows={2}
+              className="w-full text-xs text-[#1B1A17] bg-[#FAFAF6] border border-[#ECE8DD] rounded-lg px-3 py-2 outline-none focus:border-[#4C7A2A] resize-none"
+            />
           </div>
 
           <div className="bg-white border border-[#ECE8DD] rounded-xl p-4">
@@ -502,13 +462,7 @@ order.items = rows;
                     payMethod === id ? "border-[#4C7A2A] bg-[#F1F7EA]" : "border-[#ECE8DD]"
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="pay"
-                    checked={payMethod === id}
-                    onChange={() => setPayMethod(id)}
-                    className="accent-[#4C7A2A]"
-                  />
+                  <input type="radio" name="pay" checked={payMethod === id} onChange={() => setPayMethod(id)} className="accent-[#4C7A2A]" />
                   <Icon size={17} className="text-[#4C7A2A]" />
                   <span className="text-sm text-[#1B1A17]">{label}</span>
                 </label>
@@ -566,9 +520,6 @@ order.items = rows;
     );
   }
 
-  // ---------------------------------------------------------------------
-  // CART VIEW
-  // ---------------------------------------------------------------------
   if (view === "cart") {
     const cartItems = Object.entries(cart)
       .map(([id, qty]) => ({ product: products.find((p) => p.id === Number(id)), qty }))
@@ -588,10 +539,7 @@ order.items = rows;
             <div className="text-5xl mb-3">🛒</div>
             <p className="font-bold text-[#1B1A17] mb-1">Your cart is empty</p>
             <p className="text-sm text-[#8A8578] mb-5">Add items and they'll show up here, fatafat.</p>
-            <button
-              onClick={() => setView("home")}
-              className="bg-[#4C7A2A] text-white font-bold rounded-xl px-5 py-2.5"
-            >
+            <button onClick={() => setView("home")} className="bg-[#4C7A2A] text-white font-bold rounded-xl px-5 py-2.5">
               Start shopping
             </button>
           </div>
@@ -613,18 +561,11 @@ order.items = rows;
                     <p className="text-xs text-[#8A8578]">{product.qty}</p>
                     <p className="text-sm font-bold text-[#1B1A17] mt-0.5">{currency(product.price * qty)}</p>
                   </div>
-                  <StepperButton
-                    qty={qty}
-                    onInc={() => incItem(product.id)}
-                    onDec={() => decItem(product.id)}
-                  />
+                  <StepperButton qty={qty} onInc={() => incItem(product.id)} onDec={() => decItem(product.id)} />
                 </div>
               ))}
 
-              <button
-                onClick={() => setCart({})}
-                className="flex items-center gap-1.5 text-xs text-[#B23A2F] font-semibold pt-1"
-              >
+              <button onClick={() => setCart({})} className="flex items-center gap-1.5 text-xs text-[#B23A2F] font-semibold pt-1">
                 <Trash2 size={13} /> Clear cart
               </button>
             </div>
@@ -658,10 +599,7 @@ order.items = rows;
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#ECE8DD] p-3">
-              <button
-                onClick={() => setView("checkout")}
-                className="w-full bg-[#4C7A2A] text-white font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]"
-              >
+              <button onClick={() => setView("checkout")} className="w-full bg-[#4C7A2A] text-white font-bold rounded-xl py-3.5 flex items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]">
                 Proceed to checkout
                 <ArrowRight size={18} />
               </button>
@@ -672,14 +610,10 @@ order.items = rows;
     );
   }
 
-  // ---------------------------------------------------------------------
-  // HOME VIEW
-  // ---------------------------------------------------------------------
   return (
     <div className="min-h-[640px] bg-[#FAFAF6] font-[Manrope,sans-serif] pb-24 relative">
       <ScooterBolt show={showScooter} />
 
-      {/* Header */}
       <div className="sticky top-0 z-30 bg-white border-b border-[#ECE8DD]">
         <div className="flex items-center justify-between px-4 pt-3 pb-2">
           <div>
@@ -696,11 +630,7 @@ order.items = rows;
               <span className="truncate max-w-[220px]">Naigaon,Vasai</span>
             </div>
           </div>
-          <button
-            onClick={() => setView("cart")}
-            aria-label="Open cart"
-            className="relative bg-[#4C7A2A] text-white p-2.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]"
-          >
+          <button onClick={() => setView("cart")} aria-label="Open cart" className="relative bg-[#4C7A2A] text-white p-2.5 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]">
             <ShoppingCart size={18} />
             {cartCount > 0 && (
               <span className="absolute -top-1 -right-1 bg-[#E8A93B] text-[#1B1A17] text-[10px] font-bold rounded-full w-4 h-4 grid place-items-center">
@@ -730,16 +660,8 @@ order.items = rows;
         {!filteredProducts && (
           <div className="flex gap-4 overflow-x-auto px-4 pb-2.5 no-scrollbar">
             {CATEGORIES.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => scrollToCat(c.id)}
-                className={`flex flex-col items-center gap-1 shrink-0 focus:outline-none`}
-              >
-                <div
-                  className={`w-12 h-12 grid place-items-center rounded-full text-xl border-2 transition ${
-                    activeCat === c.id ? "border-[#4C7A2A] bg-[#F1F7EA]" : "border-transparent bg-[#FAFAF6]"
-                  }`}
-                >
+              <button key={c.id} onClick={() => scrollToCat(c.id)} className={`flex flex-col items-center gap-1 shrink-0 focus:outline-none`}>
+                <div className={`w-12 h-12 grid place-items-center rounded-full text-xl border-2 transition ${activeCat === c.id ? "border-[#4C7A2A] bg-[#F1F7EA]" : "border-transparent bg-[#FAFAF6]"}`}>
                   {c.emoji}
                 </div>
                 <span className={`text-[10px] font-medium text-center leading-tight w-14 ${activeCat === c.id ? "text-[#35581C] font-bold" : "text-[#8A8578]"}`}>
@@ -751,7 +673,6 @@ order.items = rows;
         )}
       </div>
 
-      {/* Body */}
       {filteredProducts ? (
         <div className="p-4">
           <p className="text-xs text-[#8A8578] mb-3">{filteredProducts.length} results for "{query}"</p>
@@ -774,25 +695,14 @@ order.items = rows;
             const items = products.filter((p) => p.cat === cat.id);
             if (items.length === 0) return null;
             return (
-              <div
-                key={cat.id}
-                ref={(el) => (sectionRefs.current[cat.id] = el)}
-                className="mb-5 scroll-mt-32"
-              >
+              <div key={cat.id} ref={(el) => (sectionRefs.current[cat.id] = el)} className="mb-5 scroll-mt-32">
                 <div className="flex items-center gap-2 px-4 mb-2">
                   <span className="text-lg">{cat.emoji}</span>
                   <h2 className="text-sm font-bold text-[#1B1A17]">{cat.label}</h2>
                 </div>
                 <div className="flex gap-3 overflow-x-auto px-4 pb-1 no-scrollbar snap-x">
                   {items.map((p) => (
-                    <ProductCard
-                      key={p.id}
-                      product={p}
-                      qty={cart[p.id] || 0}
-                      onAdd={() => addItem(p.id)}
-                      onInc={() => incItem(p.id)}
-                      onDec={() => decItem(p.id)}
-                    />
+                    <ProductCard key={p.id} product={p} qty={cart[p.id] || 0} onAdd={() => addItem(p.id)} onInc={() => incItem(p.id)} onDec={() => decItem(p.id)} />
                   ))}
                 </div>
               </div>
@@ -801,13 +711,9 @@ order.items = rows;
         </div>
       )}
 
-      {/* Sticky cart bar */}
       {cartCount > 0 && (
         <div className="fixed bottom-0 left-0 right-0 p-3">
-          <button
-            onClick={() => setView("cart")}
-            className="w-full bg-[#4C7A2A] text-white rounded-xl py-3 px-4 flex items-center justify-between shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]"
-          >
+          <button onClick={() => setView("cart")} className="w-full bg-[#4C7A2A] text-white rounded-xl py-3 px-4 flex items-center justify-between shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#35581C]">
             <span className="flex items-center gap-2 text-sm font-bold">
               <span className="bg-white/20 rounded px-1.5 py-0.5 text-xs">{cartCount} item{cartCount > 1 ? "s" : ""}</span>
               {currency(itemTotal)}
@@ -829,9 +735,7 @@ order.items = rows;
 
 function ProductCardGrid({ product, cart, addItem, incItem, decItem }) {
   const qty = cart[product.id] || 0;
-  const discount = product.mrp > product.price
-    ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-    : 0;
+  const discount = product.mrp > product.price ? Math.round(((product.mrp - product.price) / product.mrp) * 100) : 0;
   return (
     <div className="flex flex-col bg-white border border-[#ECE8DD] rounded-xl p-2.5">
       <div className="relative h-20 grid place-items-center bg-[#FAFAF6] rounded-lg mb-2 text-4xl">
@@ -849,9 +753,7 @@ function ProductCardGrid({ product, cart, addItem, incItem, decItem }) {
       <div className="flex items-end justify-between mt-auto gap-1">
         <div className="leading-tight">
           <div className="text-[13px] font-bold text-[#1B1A17]">{currency(product.price)}</div>
-          {discount > 0 && (
-            <div className="text-[10px] text-[#8A8578] line-through">{currency(product.mrp)}</div>
-          )}
+          {discount > 0 && <div className="text-[10px] text-[#8A8578] line-through">{currency(product.mrp)}</div>}
         </div>
         <StepperButton qty={qty} onAdd={() => addItem(product.id)} onInc={() => incItem(product.id)} onDec={() => decItem(product.id)} compact />
       </div>
