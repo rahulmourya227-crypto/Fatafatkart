@@ -141,6 +141,7 @@ export default function FatafatKart() {
   const [orderError, setOrderError] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
   const sectionRefs = useRef({});
   const scooterTimeout = useRef(null);
 
@@ -214,6 +215,7 @@ export default function FatafatKart() {
       .from("orders")
       .insert({
         customer_name: customerName,
+        phone,
         address,
         pay_method: payMethod,
         payment_status: paymentStatus,
@@ -250,6 +252,7 @@ export default function FatafatKart() {
         body: JSON.stringify({
           orderId: order.id,
           customerName: order.customer_name,
+          phone: order.phone,
           address: order.address,
           payMethod: order.pay_method,
           total: order.grand_total,
@@ -299,7 +302,7 @@ export default function FatafatKart() {
         name: "FatafatKart",
         description: "Grocery order",
         order_id: rpOrder.id,
-        prefill: { name: customerName },
+        prefill: { name: customerName, contact: phone },
         theme: { color: "#4C7A2A" },
         handler: async (response) => {
           try {
@@ -340,8 +343,8 @@ export default function FatafatKart() {
   };
 
   const placeOrder = () => {
-    if (!customerName.trim() || !address.trim()) {
-      setOrderError("Please enter your name and delivery address.");
+    if (!customerName.trim() || !phone.trim() || !address.trim()) {
+      setOrderError("Please enter your name, phone number and delivery address.");
       return;
     }
     if (payMethod === "cod") {
@@ -437,6 +440,13 @@ export default function FatafatKart() {
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Your name"
+              className="w-full text-sm text-[#1B1A17] font-medium bg-[#FAFAF6] border border-[#ECE8DD] rounded-lg px-3 py-2 outline-none focus:border-[#4C7A2A]"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Phone number"
+              type="tel"
               className="w-full text-sm text-[#1B1A17] font-medium bg-[#FAFAF6] border border-[#ECE8DD] rounded-lg px-3 py-2 outline-none focus:border-[#4C7A2A]"
             />
             <textarea
