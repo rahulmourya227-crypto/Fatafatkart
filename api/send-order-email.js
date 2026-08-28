@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { orderId, customerName, address, items, total, payMethod } = req.body;
+    const { orderId, customerName, address, phone,items, total, payMethod } = req.body;
 
     const itemsList = (items || [])
       .map((it) => `${it.product_name} x${it.quantity} - ₹${it.price * it.quantity}`)
