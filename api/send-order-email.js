@@ -18,6 +18,7 @@ Customer: ${customerName}
 Address: ${address}
 Payment: ${payMethod}
 Total: ₹${total}
+Phone: ${phone}
 
 Items:
 ${itemsList}
